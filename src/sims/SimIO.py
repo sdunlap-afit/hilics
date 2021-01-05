@@ -87,7 +87,7 @@ class SimIO:
 		self.spidev.open(0, 0)
 		self.spidev.max_speed_hz = 115200
 		self.spidev.mode = 0b0
-		self.spidev.cshigh = False
+		#self.spidev.cshigh = False
 		self.spidev.lsbfirst = False
 		
 		
