@@ -167,9 +167,7 @@ class IO_Test(tk.Frame):
 	def toggle(self, index):
 		
 		self.dig_inputs[index] = not self.dig_inputs[index]
-		
-		self.simio.write_dig_ins(self.dig_inputs)
-		
+
 		if self.dig_inputs[index]:
 			#self.dig_input_btns[index].config(relief='sunken')
 			# Orange
@@ -210,7 +208,6 @@ class IO_Test(tk.Frame):
 			
 			lab = tk.Label(frame, text='I:0/{} - '.format(i))
 			self.config_label(lab)
-			
 			
 			
 			img1 = tk.PhotoImage(width=1, height=1)
