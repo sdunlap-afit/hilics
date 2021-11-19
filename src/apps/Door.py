@@ -30,6 +30,7 @@ import time
 
 from sims.DoorSim import DoorSim
 from widgets.AlarmCircle import AlarmCircle
+from widgets.RoundRectangle import round_rectangle
 
 
 class Door(tk.Frame):
@@ -325,33 +326,7 @@ class Door(tk.Frame):
 		
 		
 		
-	def round_rectangle(self, canvas, x1, y1, x2, y2, radius=25, **kwargs):
-
-		points = [x1+radius, y1,
-					x1+radius, y1,
-					x2-radius, y1,
-					x2-radius, y1,
-					x2, y1,
-					x2, y1+radius,
-					x2, y1+radius,
-					x2, y2-radius,
-					x2, y2-radius,
-					x2, y2,
-					x2-radius, y2,
-					x2-radius, y2,
-					x1+radius, y2,
-					x1+radius, y2,
-					x1, y2,
-					x1, y2-radius,
-					x1, y2-radius,
-					x1, y1+radius,
-					x1, y1+radius,
-					x1, y1]
-
-		return canvas.create_polygon(points, kwargs, smooth=True)
-	
-	
-	
+		
 	def setup_frame1(self):
 		
 		frame = tk.Frame(self, width=800, height=400)
@@ -518,7 +493,7 @@ class Door(tk.Frame):
 		ey = sy + ht
 		
 		#rect = self.canvas.create_rectangle(sx, sy, ex, ey, outline=self.default_fg, fill=self.default_fg)
-		self.round_rectangle(self.canvas, sx, sy, ex, ey, radius=50, outline=self.default_fg, fill=self.default_fg)
+		round_rectangle(self.canvas, sx, sy, ex, ey, radius=50, outline=self.default_fg, fill=self.default_fg)
 		
 		
 		
@@ -532,7 +507,7 @@ class Door(tk.Frame):
 		x = sx + ((ex - sx) / 2)
 		y = sy + 15 + (1 * (ey - sy) / 4)
 		
-		self.open_btn = self.round_rectangle(self.canvas, x-r, y-r, x+r, y+r, radius=20, outline=self.default_fg, fill=self.low_color)
+		self.open_btn = round_rectangle(self.canvas, x-r, y-r, x+r, y+r, radius=20, outline=self.default_fg, fill=self.low_color)
 		#self.open_btn = self.canvas.create_oval(x-r, y-r, x+r, y+r, outline=self.default_fg, fill=self.low_color)
 		
 		
@@ -542,14 +517,14 @@ class Door(tk.Frame):
 		
 		x = sx + ((ex - sx) / 2)
 		y = sy + 15 + (2 * (ey - sy) / 4)
-		self.close_btn = self.round_rectangle(self.canvas, x-r, y-r, x+r, y+r, radius=20, outline=self.default_fg, fill=self.low_color)
+		self.close_btn = round_rectangle(self.canvas, x-r, y-r, x+r, y+r, radius=20, outline=self.default_fg, fill=self.low_color)
 		self.canvas.tag_bind(self.close_btn, '<Button-1>', self.close_btn_click)
 		self.canvas.create_text(x - r - 2, y, anchor='e', text = 'I:0/3', fill=self.default_bg)
 		self.canvas.create_text(x + r + 2, y, anchor='w', text = 'CLOSE', fill=self.default_bg)
 		
 		x = sx + ((ex - sx) / 2)
 		y = sy + 15 + (3 * (ey - sy) / 4)
-		self.stop_btn = self.round_rectangle(self.canvas, x-r, y-r, x+r, y+r, radius=20, outline=self.default_fg, fill=self.low_color)
+		self.stop_btn = round_rectangle(self.canvas, x-r, y-r, x+r, y+r, radius=20, outline=self.default_fg, fill=self.low_color)
 		self.canvas.tag_bind(self.stop_btn, '<Button-1>', self.stop_btn_click)
 		self.canvas.create_text(x - r - 2, y, anchor='e', text = 'I:0/4', fill=self.default_bg)
 		self.canvas.create_text(x + r + 2, y, anchor='w', text = 'STOP', fill=self.default_bg)
@@ -563,7 +538,7 @@ class Door(tk.Frame):
 		h = 40
 		x = (sx + ((ex - sx) / 2)) - w/2
 		y = sy - h - h
-		rect = self.round_rectangle(self.canvas, x, y, x+w, y+h, radius=20, outline=self.green_color, fill=self.green_color)
+		rect = round_rectangle(self.canvas, x, y, x+w, y+h, radius=20, outline=self.green_color, fill=self.green_color)
 		lab = self.canvas.create_text(x + w/2, y+h/2, anchor='c', text = 'Car', fill=self.default_bg, font='Helvetica 12 bold')
 		
 		self.canvas.tag_bind(rect, '<Button-1>', self.doorsim.begin_car)
@@ -587,7 +562,7 @@ class Door(tk.Frame):
 		ey = sy + ht
 		
 		#rect = self.canvas.create_rectangle(sx, sy, ex, ey, outline=self.default_fg, fill=self.default_fg)
-		self.round_rectangle(self.canvas, sx, sy, ex, ey, radius=50, outline=self.default_fg, fill=self.default_fg)
+		round_rectangle(self.canvas, sx, sy, ex, ey, radius=50, outline=self.default_fg, fill=self.default_fg)
 		
 		
 		

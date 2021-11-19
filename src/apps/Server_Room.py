@@ -32,6 +32,59 @@
 
 
 
+##### HVAC Components #####
+## 
+## Chiller - AC
+## Air Handler - blower
+## Air filters
+## Ducts
+## Damper
+##		Blades in ducts to control airflow (manual or auto)
+## 		Can be installed at firewalls to close during a fire
+## Terminal Unit - Device with auto damper
+##		Electric, pneumatic or digital actuator
+##		Regulated by thermostat
+## Thermostat - one per zone
+## Heating coils - zone-by-zone heating
+##
+## https://www.youtube.com/watch?v=-v0wgRyJ8tk
+##
+
+
+##### IO List #####
+##
+## Analog Inputs (2 max)
+##		Temperature
+##		Humidity
+##
+## Analog Outputs (4 max)
+## 		Damper - Controls temperature
+##		Pump(?) - Controls humidity
+## 		
+## Digital Inputs (10 max)
+##		Door open/closed
+##		Locked/Unlocked
+##		Lights on/off
+## 		Motion (for alarm and/or unlocking door from inside - fire code)
+##		Fire
+##		Additional overheat sensor??
+##		
+## Digital outputs (6 max)
+##		Lights
+##		Door unlock
+##		Intrusion alarm
+##		Fire alarm
+##		Fire supression (gas?)
+## 		
+##
+## NOTE: Additional "network" sensors can be provided - the RPI can send the value to the PLC via Ethernet
+##
+##
+
+
+
+
+
 try:
 	import Tkinter as tk
 	from Tkinter import ttk
@@ -46,11 +99,8 @@ except ImportError:
 
 from sims.ServerSim import ServerSim
 
-
-from widgets.Dial_Canvas import Dial_Canvas
-from widgets.FloatNumpad import FloatNumpad
-from widgets.Tank import Tank
-
+from widgets.Dial import Dial
+from widgets.RoundRectangle import round_rectangle
 
 import threading
 import time
@@ -196,7 +246,80 @@ class Server_Room(tk.Frame):
 		self.config_bg(self.canvas)
 		
 
+		##### Sensor Dials #####
+
+		d = 70
+		gap = 10
+		max_val = 100.0
+		font = ("Helvetica", 10)
+
+		x, y = 10, 20
+
+		self.canvas.create_text((x + d + gap / 2), y - gap, text='Sensors', font=("Helvetica", 14), fill=self.default_fg, anchor='c')
 		
+		self.room_temp_dial = Dial(self.canvas, sx=x, sy=y, diameter=d, step=max_val/10, text='Temp', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+		self.discharge_temp_dial = Dial(self.canvas, sx=(x + d + gap), sy=y, diameter=d, step=max_val/10, text='DAS', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+
+		
+		##### Actuator Dials #####
+
+		x = x + 2*d + 3*gap
+		y = 20
+		font = ("Helvetica", 9)
+		self.canvas.create_text((x + d + gap / 2), y - gap, text='Actuators', font=("Helvetica", 14), fill=self.default_fg, anchor='c')
+		
+		self.damper_dial = Dial(self.canvas, sx=x, sy=y, diameter=d, step=max_val/10, text='Damper', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+		self.reheat_dial = Dial(self.canvas, sx=(x + d + gap), sy=y, diameter=d, step=max_val/10, text='Reheat', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+
+
+		##### Fan Speed Indicator #####
+
+
+		font = ("Helvetica", 9)
+		self.canvas.create_text((x + d + gap / 2), y - gap, text='Actuators', font=("Helvetica", 14), fill=self.default_fg, anchor='c')
+
+		ht = 125
+		wd = 75
+		sx = x + 2*d + 3*gap
+		sy = 5
+		ex = sx + wd
+		ey = sy + ht
+		
+		#rect = self.canvas.create_rectangle(sx, sy, ex, ey, outline=self.default_fg, fill=self.default_fg)
+		round_rectangle(self.canvas, sx, sy, ex, ey, radius=25, outline=self.default_fg, fill=self.default_fg)
+				
+		
+		x = sx + ((ex - sx) / 2)
+		y = sy + 15
+		self.canvas.create_text(x, y, anchor='c', text = 'Fan Speed', font=("Helvetica", 14), fill=self.default_bg)
+				
+		r = 15
+
+		font = ("Helvetica", 10)
+		
+		x = sx + ((ex - sx) / 4)
+		y = sy + 10 + (1 * (ey - sy) / 4)
+		self.fan__ind = self.canvas.create_oval(x-r, y-r, x+r, y+r, outline=self.default_fg, fill=self.low_color)
+		
+		self.canvas.create_text(x + r + 2, y, anchor='w', text = 'HIGH', font=font, fill=self.default_bg)
+		
+		x = sx + ((ex - sx) / 4)
+		y = sy + 10 + (2 * (ey - sy) / 4)
+		self.fan_med_ind = self.canvas.create_oval(x-r, y-r, x+r, y+r, outline=self.default_fg, fill=self.low_color)
+		
+		self.canvas.create_text(x + r + 2, y, anchor='w', text = 'MED', font=font, fill=self.default_bg)
+		
+		x = sx + ((ex - sx) / 4)
+		y = sy + 10 + (3 * (ey - sy) / 4)
+		self.fan_high_ind = self.canvas.create_oval(x-r, y-r, x+r, y+r, outline=self.default_fg, fill=self.low_color)
+		
+		self.canvas.create_text(x + r + 2, y, anchor='w', text = 'LOW', font=font, fill=self.default_bg)
+		
+
+
+
+
+
 		self.canvas.pack()
 		
 

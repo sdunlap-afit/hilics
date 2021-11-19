@@ -47,11 +47,6 @@ except ImportError:
 from sims.BlankSim import BlankSim
 
 
-from widgets.Dial_Canvas import Dial_Canvas
-from widgets.FloatNumpad import FloatNumpad
-from widgets.Tank import Tank
-
-
 import threading
 import time
 import math

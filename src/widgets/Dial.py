@@ -28,7 +28,7 @@ import math
 class Dial():
 	
 	
-	def __init__(self, master, sx, sy, diameter=100, minval=0.0, maxval=10.0, step=1.0, text=None, bg=None, fg=None, dead_angle=90.0):
+	def __init__(self, master, sx, sy, diameter=100, minval=0.0, maxval=10.0, step=1.0, text=None, text_font=("Helvetica", 10), bg=None, fg=None, dead_angle=90.0):
 		self.master = master
 		self.bg = bg
 		self.fg = fg
@@ -47,7 +47,7 @@ class Dial():
 		
 		
 		if not text is None:
-			self.canvas.create_text(self.sx + self.radius, self.sy + diameter*7/8, text=text, fill=self.fg, anchor='c')
+			self.canvas.create_text(self.sx + self.radius, self.sy + diameter*7/8, text=text, font=text_font, fill=self.fg, anchor='c')
 		
 		
 		self.create_ticks()
