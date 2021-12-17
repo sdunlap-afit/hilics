@@ -24,9 +24,8 @@ import struct
 ###
 class MicroLogixComm:
 
-	__init__(self, ip='192.168.107.3'):
+	def __init__(self, ip='192.168.107.3'):
 		self.ip = ip
-		self.port = 44818
 
 
 	### Connect to the PLC and register a session
@@ -62,7 +61,7 @@ class MicroLogixComm:
 		response = self._send_pccc_object(pccc_object)
 
 		if b'1763-LEC' in response:
-			print('Connection good')
+			#print('Connection good')
 			return True
 		else:
 			print('Error: Invalid response received')

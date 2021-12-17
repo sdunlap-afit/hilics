@@ -17,6 +17,38 @@
 import time
 from sims.SimIO import SimIO
 from sims.AcceleratingActuatorSim import AcceleratingActuatorSim
+from sims.MicroLogixComm import MicroLogixComm
+
+
+##### IO List #####
+##
+## Analog Inputs (2 max)
+##		Temperature
+##		Humidity
+##
+## Analog Outputs (4 max)
+## 		Damper - Controls temperature
+##		Pump(?) - Controls humidity
+## 		
+## Digital Inputs (10 max)
+##		Door open/closed
+##		Locked/Unlocked
+##		Lights on/off
+## 		Motion (for alarm and/or unlocking door from inside - fire code)
+##		Fire
+##		Additional overheat sensor??
+##		
+## Digital outputs (6 max)
+##		Lights
+##		Door unlock
+##		Intrusion alarm
+##		Fire alarm
+##		Fire supression (gas?)
+## 		
+##
+## NOTE: Additional "network" sensors can be provided - the RPI can send the value to the PLC via Ethernet
+##
+##
 
 
 class ServerSim:
@@ -27,14 +59,29 @@ class ServerSim:
 	#def __init__(self, addr, is_output, pin_map):
 	def __init__(self):
 		
+		# update values 10x per second
+		self.mlupdateperiod = 0.1
+
+		self.mlcomm = MicroLogixComm()
+		self.mlcomm.connect()
+		self.mlcomm.test_connection()
+
+
 		self.simio = SimIO()
 		self.last_update = 0
 		self.time_scale = 1.0
 		
+		# I:0/0
+		self.z0_damper = AcceleratingActuatorSim(100.0, 50.0, 50.0)
+
+		# I:0/1
+		self.z0_reheat = AcceleratingActuatorSim(10.0, 2.0, 1.0)
 		
-		# self.pump = AcceleratingActuatorSim(10.0, 2.0)
-		
-		
+		# I:0/0
+		self.z0_temp = 0.0
+		# I:0/1
+		self.z0_humidity = 0.0
+
 		# O:0/0
 		self.relay_out_0 = 0
 		# O:0/1
@@ -67,15 +114,17 @@ class ServerSim:
 		
 		# Project Select for Demo:
 		# I:0/7 - I:0/9
-		self.proj0 = 1
+		self.proj0 = 0
 		self.proj1 = 0
-		self.proj2 = 0
+		self.proj2 = 1
 		
 		
 		# I:0.4
 		self.analog_in_0 = 0.0
 		# I:0.5
 		self.analog_in_1 = 0.0
+
+
 		
 	
 	
@@ -103,7 +152,7 @@ class ServerSim:
 		self.simio.write_dig_ins(vals)
 	
 	
-		vals = [int(self.analog_in_0 * 40.95), int(self.analog_in_1 * 40.95)]
+		vals = [self.analog_in_0, self.analog_in_1]
 		
 		self.simio.write_ang_ins(vals)
 		
@@ -117,6 +166,13 @@ class ServerSim:
 			self.last_update = time.time()
 	
 	
+		##### Read PLC Analog Outputs #####
+
+		analog_vals = self.simio.read_ang_outs()
+
+		# 0 - 100%
+		self.z0_damper.setpoint = analog_vals[0] * 10.0
+		self.z0_reheat.setpoint = analog_vals[1] * 10.0
 	
 		##### Read PLC Relay Outputs #####
 		

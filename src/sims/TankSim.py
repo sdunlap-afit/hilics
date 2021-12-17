@@ -130,7 +130,7 @@ class TankSim:
 		self.simio.write_dig_ins(vals)
 	
 	
-		vals = [int(self.water_level * 40.95), int(self.inflow_rate * 409.5)]
+		vals = [self.water_level / 10.0, self.inflow_rate]
 		
 		self.simio.write_ang_ins(vals)
 		
@@ -156,9 +156,9 @@ class TankSim:
 
 		# Vals range 0-10
 		# Setpoints range 0-100
-		ang_vals = self.simio.read_ang_outs()
-		self.pump.setpoint = ang_vals[0] * 10.0
-		self.valve.setpoint = ang_vals[1] * 10.0
+		analog_vals = self.simio.read_ang_outs()
+		self.pump.setpoint = analog_vals[0] * 10.0
+		self.valve.setpoint = analog_vals[1] * 10.0
 		
 		
 		t = time.time()

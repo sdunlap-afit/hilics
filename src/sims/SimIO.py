@@ -210,13 +210,16 @@ class SimIO:
 		return res
 
 
-		
+	# Send the vals. Vals treated as 0.0 - 10.0 (volts) 
+	#
 	def write_DAC(self, vals):
 		
 		for i in range(0, 2):
 			GPIO.output(DAC_CS, GPIO.LOW)
-			v = vals[i]
-	
+			v = vals[i] * 409.5
+
+			v = int(min(v, 4095.0))
+
 			firstByte = (v >> 8) | 0b00110000
 			secondByte = v & 0x0FF
 
@@ -229,14 +232,15 @@ class SimIO:
 			GPIO.output(DAC_CS, GPIO.HIGH)
 			
 	
-	
+	# Read the ADC and convert the value to 0.0 - 10.0 (volts)
+	#
 	def read_ADC(self):
 		vals = []
 		
 		for i in range(0, 4):
 			
 			GPIO.output(ADC_CS, GPIO.LOW)
-			cmd = (0b00011000 | i) << 6;
+			cmd = (0b00011000 | i) << 6
 			
 			to_send = [cmd >> 8, cmd & 0x0FF, 0]
 			

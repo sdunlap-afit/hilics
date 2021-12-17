@@ -149,7 +149,7 @@ class IO_Test(tk.Frame):
 				v1 = float(self.scale1_var.get())
 				v2 = float(self.scale2_var.get())
 				
-				vals = [int(v1 * 409.5), int(v2 * 409.5)]
+				vals = [v1, v2]
 		
 				self.simio.write_ang_ins(vals)
 				self.simio.write_dig_ins(self.dig_inputs)

@@ -51,35 +51,7 @@
 ##
 
 
-##### IO List #####
-##
-## Analog Inputs (2 max)
-##		Temperature
-##		Humidity
-##
-## Analog Outputs (4 max)
-## 		Damper - Controls temperature
-##		Pump(?) - Controls humidity
-## 		
-## Digital Inputs (10 max)
-##		Door open/closed
-##		Locked/Unlocked
-##		Lights on/off
-## 		Motion (for alarm and/or unlocking door from inside - fire code)
-##		Fire
-##		Additional overheat sensor??
-##		
-## Digital outputs (6 max)
-##		Lights
-##		Door unlock
-##		Intrusion alarm
-##		Fire alarm
-##		Fire supression (gas?)
-## 		
-##
-## NOTE: Additional "network" sensors can be provided - the RPI can send the value to the PLC via Ethernet
-##
-##
+
 
 
 
@@ -251,14 +223,14 @@ class Server_Room(tk.Frame):
 		d = 70
 		gap = 10
 		max_val = 100.0
-		font = ("Helvetica", 10)
+		font = ("Helvetica", 9)
 
 		x, y = 10, 20
 
 		self.canvas.create_text((x + d + gap / 2), y - gap, text='Sensors', font=("Helvetica", 14), fill=self.default_fg, anchor='c')
 		
 		self.room_temp_dial = Dial(self.canvas, sx=x, sy=y, diameter=d, step=max_val/10, text='Temp', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
-		self.discharge_temp_dial = Dial(self.canvas, sx=(x + d + gap), sy=y, diameter=d, step=max_val/10, text='DAS', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+		self.humidity_dial = Dial(self.canvas, sx=(x + d + gap), sy=y, diameter=d, step=max_val/10, text='Humidity', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
 
 		
 		##### Actuator Dials #####
