@@ -17,21 +17,6 @@
 
 
 
-
-#####----- Instructions -----#####
-#
-# This is a simple template to get started making your own simulation for HILICS
-# To create your own App:
-#	1. Create a copy of apps/BlankApp.py in the apps directory and name it appropriately
-#	2. Rename the BlankApp class to match the new filename (must match exactly for import to work)
-#	3. Create a copy of sims/BlankSim.py and name it appropriately
-#	4. Rename the BlankSim class
-#	5. Update the import statement below to reference your new Sim instead of BlankSim
-#	6. Add your App to apps/appsList.txt (this will add it to the main display)
-#		If you have more than 6 apps, the rest will be shown in the drop-down menu
-
-
-
 ##### HVAC Components #####
 ## 
 ## Chiller - AC
@@ -51,12 +36,6 @@
 ##
 
 
-
-
-
-
-
-
 try:
 	import Tkinter as tk
 	from Tkinter import ttk
@@ -73,6 +52,7 @@ from sims.ServerSim import ServerSim
 
 from widgets.Dial import Dial
 from widgets.RoundRectangle import round_rectangle
+from widgets.Graph import Graph
 
 import threading
 import time
@@ -102,7 +82,7 @@ class Server_Room(tk.Frame):
 		self.sim = ServerSim()
 		self.val = 0.0
 
-
+		self.last_graph_update = 0.0
 
 		
 		super().__init__(master)
@@ -171,7 +151,22 @@ class Server_Room(tk.Frame):
 		self.config_fg(lab)
 	
 	
-	
+
+
+
+	def update_graph(self):
+		t = time.time()
+		
+		if t - self.last_graph_update > 1.0:
+			self.last_graph_update = t
+			self.graph.add_point(0, 1.0)
+			self.graph.add_point(1, 2.0)
+			self.graph.add_point(2, 3.0)
+			self.graph.add_point(3, 4.0)
+
+
+
+
 
 	##### worker_thread handles updating the simulation and any display items
 	
@@ -188,7 +183,9 @@ class Server_Room(tk.Frame):
 
 				##### Update display items here
 
+				self.update_graph()
 
+				self.graph.bring_to_top()
 
 				##### Choose an appropriate sleep duration (smaller value for faster processes)
 				time.sleep(0.01)
@@ -196,8 +193,54 @@ class Server_Room(tk.Frame):
 			except Exception as e: 
 				print(e)
 		
+	
+
+	### Create a basic representation of a server rack with the
+	### top left corner positioned at (x, y) 
+	def create_server_rack(self, canvas, x, y, width, height, rows=7, columns=2):
 		
+		padding = 5
+
+		round_rectangle(canvas, x, y, x+width, y+height, radius=10, outline=self.default_fg, fill=self.default_fg)
 		
+		self.canvas.create_text(x + int(width/2), y+2*padding, anchor='c', text = 'Servers', font=("Helvetica", 14), fill=self.default_bg)
+
+		y += 14
+		height -= 14
+		col_width = int((width - (padding * (columns + 1))) / columns)
+		row_height = int((height - (padding * (rows + 1))) / rows)
+
+		for c in range(columns):
+			
+			sx = x + c * col_width + (c+1) * padding
+			ex = sx + col_width
+
+			for r in range(rows):
+				sy = y + r * row_height + (r+1) * padding
+				ey = sy + row_height
+				
+				round_rectangle(canvas, sx, sy, ex, ey, radius=10, outline=self.default_bg, fill=self.default_bg)
+				
+				h = int(row_height * 0.5) / 2
+				w = int(h * 1.5)
+
+				ind_x = int(sx + col_width * 0.2)
+				ind_y = int(sy + row_height / 2)
+				
+				canvas.create_rectangle(ind_x-w, ind_y-h, ind_x + w, ind_y + h, outline=self.low_color, fill=self.low_color)
+				ind_x += 2*w + 5
+				canvas.create_rectangle(ind_x-w, ind_y-h, ind_x + w, ind_y + h, outline=self.low_color, fill=self.low_color)
+
+
+				ind_x = int(sx + col_width * 0.65)
+				r = int(row_height * 0.3) / 2
+
+
+				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline=self.low_color, fill=self.low_color)
+				ind_x += 2*r + 5
+				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline=self.low_color, fill=self.low_color)
+				ind_x += 2*r + 5
+				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline=self.low_color, fill=self.low_color)
 	
 	
 	##### These setup methods create the frames for your App
@@ -216,27 +259,35 @@ class Server_Room(tk.Frame):
 		
 		self.canvas = tk.Canvas(frame, width=800, height=400, bd=0, highlightthickness=0, relief='ridge')
 		self.config_bg(self.canvas)
-		
+
+
+		##### Server Rack #####
+
+		x = 10
+		y = 150
+		self.create_server_rack(self.canvas, x, y, 300, 400 - y - 10)	
 
 		##### Sensor Dials #####
 
 		d = 70
 		gap = 10
 		max_val = 100.0
-		font = ("Helvetica", 9)
+		font = ("Helvetica", 8)
 
-		x, y = 10, 20
+		x, y = 330, 20
 
 		self.canvas.create_text((x + d + gap / 2), y - gap, text='Sensors', font=("Helvetica", 14), fill=self.default_fg, anchor='c')
 		
-		self.room_temp_dial = Dial(self.canvas, sx=x, sy=y, diameter=d, step=max_val/10, text='Temp', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+		self.room_temp_dial = Dial(self.canvas, sx=x, sy=y, diameter=d, step=max_val/10, text='Floor (°F)', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
 		self.humidity_dial = Dial(self.canvas, sx=(x + d + gap), sy=y, diameter=d, step=max_val/10, text='Humidity', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+
+		self.room_temp_dial = Dial(self.canvas, sx=x, sy=y+d+gap, diameter=d, step=max_val/10, text='Srv Room (°F)', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
 
 		
 		##### Actuator Dials #####
 
 		x = x + 2*d + 3*gap
-		y = 20
+		
 		font = ("Helvetica", 9)
 		self.canvas.create_text((x + d + gap / 2), y - gap, text='Actuators', font=("Helvetica", 14), fill=self.default_fg, anchor='c')
 		
@@ -253,7 +304,7 @@ class Server_Room(tk.Frame):
 		ht = 125
 		wd = 75
 		sx = x + 2*d + 3*gap
-		sy = 5
+		sy = y - 10
 		ex = sx + wd
 		ey = sy + ht
 		
@@ -288,7 +339,15 @@ class Server_Room(tk.Frame):
 		self.canvas.create_text(x + r + 2, y, anchor='w', text = 'LOW', font=font, fill=self.default_bg)
 		
 
-
+		##########  Graph  ##########
+		
+		w = 340
+		h = 170
+		self.graph = Graph(self.canvas, 800-w-25, 200, w, h, self.default_fg, self.default_bg, 100, 30, lines=True)
+		self.graph.add_graph('#0000C0', 'UPDATE ME', ("Helvetica", 8))
+		self.graph.add_graph('#00C000', 'UPDATE ME', ("Helvetica", 8))
+		self.graph.add_graph('#C00000', 'UPDATE ME', ("Helvetica", 8))
+		self.graph.add_graph('#505050', 'UPDATE ME', ("Helvetica", 8))
 
 
 
