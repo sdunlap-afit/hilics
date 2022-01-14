@@ -159,13 +159,27 @@ class Server_Room(tk.Frame):
 		
 		if t - self.last_graph_update > 1.0:
 			self.last_graph_update = t
-			self.graph.add_point(0, 1.0)
-			self.graph.add_point(1, 2.0)
+			self.graph.add_point(0, self.sim.building.temp)
+			self.graph.add_point(1, self.sim.server_room.temp)
 			self.graph.add_point(2, 3.0)
 			self.graph.add_point(3, 4.0)
 
 
-
+	def update_servers(self):
+		for i, server in enumerate(self.sim.servers):
+			if server.status == server.RUNNING:
+				self.canvas.itemconfig(self.servers_text[i], text="Running")
+				self.canvas.itemconfig(self.servers_text[i], fill='#005000')
+			elif server.status == server.THROTTLED:
+				self.canvas.itemconfig(self.servers_text[i], text="Throttled")
+				self.canvas.itemconfig(self.servers_text[i], fill='#505000')
+			elif server.status == server.SHUTDOWN:
+				self.canvas.itemconfig(self.servers_text[i], text="Shutdown")
+				self.canvas.itemconfig(self.servers_text[i], fill='#500000')
+			else:
+				self.canvas.itemconfig(self.servers_text[i], text="Sim Error")
+				self.canvas.itemconfig(self.servers_text[i], fill='#FF0000')
+				
 
 
 	##### worker_thread handles updating the simulation and any display items
@@ -179,6 +193,7 @@ class Server_Room(tk.Frame):
 				##### Update the simulation
 				self.sim.update()
 
+				self.update_servers()
 
 
 				##### Update display items here
@@ -186,6 +201,9 @@ class Server_Room(tk.Frame):
 				self.update_graph()
 
 				self.graph.bring_to_top()
+
+				self.building_temp_dial.update(self.sim.building.temp)
+				self.server_room_temp_dial.update(self.sim.server_room.temp)
 
 				##### Choose an appropriate sleep duration (smaller value for faster processes)
 				time.sleep(0.01)
@@ -203,12 +221,15 @@ class Server_Room(tk.Frame):
 
 		round_rectangle(canvas, x, y, x+width, y+height, radius=10, outline=self.default_fg, fill=self.default_fg)
 		
-		self.canvas.create_text(x + int(width/2), y+2*padding, anchor='c', text = 'Servers', font=("Helvetica", 14), fill=self.default_bg)
+		canvas.create_text(x + int(width/2), y+2*padding, anchor='c', text = 'Servers', font=("Helvetica", 14), fill=self.default_bg)
 
 		y += 14
 		height -= 14
 		col_width = int((width - (padding * (columns + 1))) / columns)
 		row_height = int((height - (padding * (rows + 1))) / rows)
+		
+
+		self.servers_text = []
 
 		for c in range(columns):
 			
@@ -222,25 +243,26 @@ class Server_Room(tk.Frame):
 				round_rectangle(canvas, sx, sy, ex, ey, radius=10, outline=self.default_bg, fill=self.default_bg)
 				
 				h = int(row_height * 0.5) / 2
-				w = int(h * 1.5)
+				w = int(h * 4)
 
-				ind_x = int(sx + col_width * 0.2)
+				ind_x = int(sx + col_width * 0.3)
 				ind_y = int(sy + row_height / 2)
 				
-				canvas.create_rectangle(ind_x-w, ind_y-h, ind_x + w, ind_y + h, outline=self.low_color, fill=self.low_color)
-				ind_x += 2*w + 5
-				canvas.create_rectangle(ind_x-w, ind_y-h, ind_x + w, ind_y + h, outline=self.low_color, fill=self.low_color)
-
+				canvas.create_rectangle(ind_x-w, ind_y-h, ind_x + w, ind_y + h, outline=self.default_fg, fill=self.default_fg)
+				
+				txt = canvas.create_text(ind_x, ind_y, anchor='c', text = 'Running', font=("Helvetica", 10), fill='#00FF00')
+				
+				self.servers_text.append(txt)
 
 				ind_x = int(sx + col_width * 0.65)
 				r = int(row_height * 0.3) / 2
 
 
-				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline=self.low_color, fill=self.low_color)
+				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline='#008000', fill='#008000')
 				ind_x += 2*r + 5
-				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline=self.low_color, fill=self.low_color)
+				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline='#800000', fill='#800000')
 				ind_x += 2*r + 5
-				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline=self.low_color, fill=self.low_color)
+				canvas.create_oval(ind_x-r, ind_y-r, ind_x+r, ind_y+r, outline='#000080', fill='#000080')
 	
 	
 	##### These setup methods create the frames for your App
@@ -271,21 +293,20 @@ class Server_Room(tk.Frame):
 
 		d = 70
 		gap = 10
-		max_val = 100.0
+		max_val = 150.0
 		font = ("Helvetica", 8)
 
 		x, y = 330, 20
 
-		self.canvas.create_text((x + d + gap / 2), y - gap, text='Sensors', font=("Helvetica", 14), fill=self.default_fg, anchor='c')
+		self.canvas.create_text((x + d + gap / 2), y - gap, text='Sensors', font=("Helvetica", 12), fill=self.default_fg, anchor='c')
 		
-		self.room_temp_dial = Dial(self.canvas, sx=x, sy=y, diameter=d, step=max_val/10, text='Floor (°F)', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
-		self.humidity_dial = Dial(self.canvas, sx=(x + d + gap), sy=y, diameter=d, step=max_val/10, text='Humidity', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
-
-		self.room_temp_dial = Dial(self.canvas, sx=x, sy=y+d+gap, diameter=d, step=max_val/10, text='Srv Room (°F)', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+		self.building_temp_dial = Dial(self.canvas, sx=x, sy=y, diameter=d, step=max_val/10, text='Bldg (°F)', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
+		self.server_room_temp_dial = Dial(self.canvas, sx=(x + d + gap), sy=y, diameter=d, step=max_val/10, text='Srv Rm (°F)', text_font=font, bg=self.default_bg, fg=self.default_fg, minval=0.0, maxval=max_val, dead_angle=120.0)
 
 		
 		##### Actuator Dials #####
 
+		max_val = 100
 		x = x + 2*d + 3*gap
 		
 		font = ("Helvetica", 9)
@@ -343,9 +364,9 @@ class Server_Room(tk.Frame):
 		
 		w = 340
 		h = 170
-		self.graph = Graph(self.canvas, 800-w-25, 200, w, h, self.default_fg, self.default_bg, 100, 30, lines=True)
-		self.graph.add_graph('#0000C0', 'UPDATE ME', ("Helvetica", 8))
-		self.graph.add_graph('#00C000', 'UPDATE ME', ("Helvetica", 8))
+		self.graph = Graph(self.canvas, 800-w-25, 200, w, h, self.default_fg, self.default_bg, 130, 30, lines=True)
+		self.graph.add_graph('#0000C0', 'Building °F', ("Helvetica", 8))
+		self.graph.add_graph('#00C000', 'Server Room °F', ("Helvetica", 8))
 		self.graph.add_graph('#C00000', 'UPDATE ME', ("Helvetica", 8))
 		self.graph.add_graph('#505050', 'UPDATE ME', ("Helvetica", 8))
 
