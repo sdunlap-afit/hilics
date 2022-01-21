@@ -45,6 +45,7 @@ except ImportError:
 	from tkinter import ttk
 	from tkinter.font import Font
 
+from PIL import ImageTk, Image
 
 ##### Create a new sim using BlankSim as a template and update the import here
 
@@ -53,6 +54,7 @@ from sims.ServerSim import ServerSim
 from widgets.Dial import Dial
 from widgets.RoundRectangle import round_rectangle
 from widgets.Graph import Graph
+from widgets.ButtonPanel import ButtonPanel
 
 import threading
 import time
@@ -159,8 +161,8 @@ class Server_Room(tk.Frame):
 		
 		if t - self.last_graph_update > 1.0:
 			self.last_graph_update = t
-			self.graph.add_point(0, self.sim.building.temp)
-			self.graph.add_point(1, self.sim.server_room.temp)
+			self.graph.add_point(0, self.sim.building.temp_f)
+			self.graph.add_point(1, self.sim.server_room.temp_f)
 			self.graph.add_point(2, 3.0)
 			self.graph.add_point(3, 4.0)
 
@@ -190,6 +192,8 @@ class Server_Room(tk.Frame):
 		
 			try:
 				
+				self.sim.server_rm_ac_percent = self.ac_butpan.val
+
 				##### Update the simulation
 				self.sim.update()
 
@@ -202,11 +206,11 @@ class Server_Room(tk.Frame):
 
 				self.graph.bring_to_top()
 
-				self.building_temp_dial.update(self.sim.building.temp)
-				self.server_room_temp_dial.update(self.sim.server_room.temp)
+				self.building_temp_dial.update(self.sim.building.temp_f)
+				self.server_room_temp_dial.update(self.sim.server_room.temp_f)
 
 				##### Choose an appropriate sleep duration (smaller value for faster processes)
-				time.sleep(0.01)
+				time.sleep(0.1)
 			
 			except Exception as e: 
 				print(e)
@@ -281,6 +285,18 @@ class Server_Room(tk.Frame):
 		
 		self.canvas = tk.Canvas(frame, width=800, height=400, bd=0, highlightthickness=0, relief='ridge')
 		self.config_bg(self.canvas)
+
+
+		##### AC ButtonPanel #####
+
+		text = 'Server Rm AC: '
+		labs = ['100 %', '66 %', '33 %', '0 %']
+		vals = [100, 66, 33, 0]
+		
+		w = 130
+		h = 100
+		self.ac_butpan = ButtonPanel(self.canvas, text, labs, vals, 'Helvetica 12 bold', 10, 10, w, h, bg=self.default_bg, fg=self.default_fg, default_val=100)
+
 
 
 		##### Server Rack #####
@@ -364,7 +380,7 @@ class Server_Room(tk.Frame):
 		
 		w = 340
 		h = 170
-		self.graph = Graph(self.canvas, 800-w-25, 200, w, h, self.default_fg, self.default_bg, 130, 30, lines=True)
+		self.graph = Graph(self.canvas, 800-w-25, 200, w, h, self.default_fg, self.default_bg, 130, 100, lines=True)
 		self.graph.add_graph('#0000C0', 'Building °F', ("Helvetica", 8))
 		self.graph.add_graph('#00C000', 'Server Room °F', ("Helvetica", 8))
 		self.graph.add_graph('#C00000', 'UPDATE ME', ("Helvetica", 8))
@@ -379,27 +395,54 @@ class Server_Room(tk.Frame):
 	##### The two bottom frames are for any config buttons and the Back button.
 	# You can also add images or labels
 
-
+	def normal_speed_clk(self):
+		self.sim.time_scale = 1.0
 	
-	def setup_bottom_left_frame(self):
+	def double_speed_clk(self):
+		self.sim.time_scale = 2.0
 		
-		frame = tk.Frame(self, width=400, height=80)
+	def quad_speed_clk(self):
+		self.sim.time_scale = 100.0
+		
+		
+		
+	def setup_bottom_frame(self):
+		
+		frame = tk.Frame(self, width=800, height=80)
 		self.config_frame(frame)
 		frame.grid(row = 1, column=0, columnspan=1, rowspan=1)
 		
 		
+		self.normal_speed = tk.Button(frame, text='x1 Speed', command=self.normal_speed_clk)
+		self.config_btn(self.normal_speed)
+		self.normal_speed['width'] = 7
+		self.normal_speed.place(relx=0.1, rely=0.5, anchor=tk.CENTER)
 		
+		self.double_speed = tk.Button(frame, text='x2 Speed', command=self.double_speed_clk)
+		self.config_btn(self.double_speed)
+		self.double_speed['width'] = 7
+		self.double_speed.place(relx=0.22, rely=0.5, anchor=tk.CENTER)
+
+		self.quad_speed = tk.Button(frame, text='x100 Speed', command=self.quad_speed_clk)
+		self.config_btn(self.quad_speed)
+		self.quad_speed['width'] = 7
+		self.quad_speed.place(relx=0.34, rely=0.5, anchor=tk.CENTER)
+
 		
-	def setup_bottom_right_frame(self):
+		self.ccrCanvas = tk.Canvas(frame, bg=self.default_bg, width=77,height=77, bd=0, highlightthickness=0, relief='ridge')
+		self.ccrCanvas.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+		img = Image.open('./images/ccr_logo.png').resize((77, 77), Image.ANTIALIAS)
+		self.ccrImage = ImageTk.PhotoImage(img)
+		self.ccrCanvas.create_image(0,0,image=self.ccrImage,anchor="nw")
 		
-		frame = tk.Frame(self, width=400, height=80)
-		self.config_frame(frame)
-		frame.grid(row = 1, column=1, columnspan=1, rowspan=1)
-		
+		self.logoCanvas = tk.Canvas(frame, bg=self.default_bg, width=180,height=77, bd=0, highlightthickness=0, relief='ridge')
+		self.logoCanvas.place(relx=0.680, rely=0.5, anchor=tk.CENTER)
+		self.logoImage = ImageTk.PhotoImage(file='./images/afit_logo.png')
+		self.logoCanvas.create_image(0,0,image=self.logoImage,anchor="nw")
 		
 		self.quit = tk.Button(frame, text='Back', command=self.clean_up)
 		self.config_btn(self.quit)
-		self.quit.place(relx=0.75, rely=0.5, anchor=tk.CENTER)
+		self.quit.place(relx=0.9, rely=0.5, anchor=tk.CENTER)
 		
 		
 	
@@ -416,8 +459,7 @@ class Server_Room(tk.Frame):
 
 		self.setup_main_frame()
 		
-		self.setup_bottom_left_frame()
-		self.setup_bottom_right_frame()
+		self.setup_bottom_frame()
 
 		
 
