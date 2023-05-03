@@ -15,12 +15,21 @@ fi
 #####----- CHECK RPI HARDWARE -----#####
 
 # credit: https://www.raspberrypi.org/forums/viewtopic.php?t=34678
-R_PI=$(python -c "import platform; print 'raspberrypi' in platform.uname()")
+#R_PI=$(python -c "import platform; print 'raspberrypi' in platform.uname()")
 
-if [ "$R_PI" != "True" ] ; then
-    echo "ERROR: Raspberry pi hardware not detected. Edit this script to continue anyway."
-    exit 1
-fi
+#if [ "$R_PI" != "True" ] ; then
+	#####----- ENABLE SPI -----#####
+
+	# credit: https://raspberrypi.stackexchange.com/questions/96670/find-out-whether-spi-is-enabled-or-not
+	RET=$(raspi-config nonint get_spi)
+
+#if [ "$RET" -ne 0 ] ; then
+#    echo "Enabling SPI interface"
+#    sudo raspi-config nonint do_spi 0
+#else
+#    echo "SPI is already enabled"
+#fi
+#fi
 
 
 #####----- CD TO src/ -----#####
@@ -28,35 +37,17 @@ fi
 cd "$(dirname "$0")"/..
 
 
-#####----- INSTALL UPDATES -----#####
+#####----- INSTALL DEPENDENCIES -----#####
 
 sudo apt update
 sudo apt upgrade -y
 
-
-#####----- ENABLE SPI -----#####
-
-# credit: https://raspberrypi.stackexchange.com/questions/96670/find-out-whether-spi-is-enabled-or-not
-RET=$(raspi-config nonint get_spi)
-
-if [ "$RET" -ne 0 ] ; then
-    echo "Enabling SPI interface"
-    sudo raspi-config nonint do_spi 0
-else
-    echo "SPI is already enabled"
-fi
-
-
-
-#####----- INSTALL DEPENDENCIES -----#####
-
 sudo apt -y install python3-pil.imagetk
 
-
+pip3 install spidev
 
 
 #####----- COPY SRC DIR -----#####
-
 
 echo "Copying src files to ~/hilics"
 
@@ -66,8 +57,8 @@ cp ./scripts/start.sh ~/
 chmod +x ~/start.sh
 
 echo "Setting up auto start"
-mkdir -p ~/.config/lxsession/LXDE-pi
-cp -f ./scripts/autostart ~/.config/lxsession/LXDE-pi/autostart
+mkdir -p ~/.config/lxsession/LXDE-hilics
+cp -f ./scripts/autostart ~/.config/lxsession/LXDE-hilics/autostart
 
 
 

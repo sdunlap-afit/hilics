@@ -1,0 +1,15 @@
+[Unit]
+Description=My service
+After=network.target
+
+[Service]
+ExecStart=/usr/share/novnc/utils/launch.sh --vnc 127.0.0.1:5902
+WorkingDirectory=/home/
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+

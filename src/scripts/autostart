@@ -1,5 +1,5 @@
-@lxpanel --profile LXDE-pi
-@pcmanfm --desktop --profile LXDE-pi
+@lxpanel --profile LXDE-hilics
+@pcmanfm --desktop --profile LXDE-hilics
 @xscreensaver -no-splash
 @point-rpi
 @xset -dpms
